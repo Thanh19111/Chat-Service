@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.query.post.custom;
+package com.thanhpham.chat.component.rag.query.postretrival.custom;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -25,9 +25,7 @@ public class RerankDocument implements DocumentPostProcessor {
                     Float score1 = NumberUtils.createFloat(doc1.getMetadata().getOrDefault("distance", 0.0).toString());
                     Float score2 = NumberUtils.createFloat(doc2.getMetadata().getOrDefault("distance", 0.0).toString());
                     return score2.compareTo(score1);
-                })
-                .limit(3)
-                .toList();
+                }).toList();
     }
 
     @Override

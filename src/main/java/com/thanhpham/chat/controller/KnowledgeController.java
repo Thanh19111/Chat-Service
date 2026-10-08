@@ -4,7 +4,6 @@ import com.thanhpham.chat.dto.request.RagDocument;
 import com.thanhpham.chat.dto.response.ApiResponse;
 import com.thanhpham.chat.service.IRagService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.document.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/knowledge")
@@ -23,7 +21,7 @@ public class KnowledgeController {
     @GetMapping("/ask")
     public ResponseEntity<ApiResponse<String>> askKnowledge(@RequestParam("message") String message,
                                                             @RequestParam(name = "conversationId", required = false) String conversationId) {
-        conversationId = StringUtils.defaultIfBlank(conversationId, UUID.randomUUID().toString());
+        conversationId = "abc@123";
         String result = iRagService.retrieveAndGenerate(conversationId, message);
         return ResponseEntity.ok(
                 ApiResponse.<String>builder()

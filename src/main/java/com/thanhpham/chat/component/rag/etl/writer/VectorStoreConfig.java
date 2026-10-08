@@ -1,4 +1,4 @@
-package com.thanhpham.chat.config;
+package com.thanhpham.chat.component.rag.etl.writer;
 
 import com.knuddels.jtokkit.api.EncodingType;
 import lombok.extern.slf4j.Slf4j;
@@ -16,15 +16,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Slf4j
 @Configuration
 public class VectorStoreConfig {
+
     @Bean
     @ConditionalOnProperty(
             name = "app.vector-store.type",
             havingValue = "POSTGRES",
             matchIfMissing = false
     )
-    public VectorStore pgVectorStore(JdbcTemplate jdbcTemplate, EmbeddingModel embeddingModel) {
+    public VectorStore pgVectorStore(JdbcTemplate jdbcTemplate, BatchingStrategy batchingStrategy, EmbeddingModel embeddingModel) {
         log.info(">> Init PG VectorStore");
         return PgVectorStore.builder(jdbcTemplate, embeddingModel)
+                .batchingStrategy(batchingStrategy)
+                .vectorTableValidationsEnabled(true)
+                .initializeSchema(true)
                 .dimensions(1536)
                 .indexType(PgVectorStore.PgIndexType.HNSW)
                 .distanceType(PgVectorStore.PgDistanceType.COSINE_DISTANCE)
@@ -38,14 +42,16 @@ public class VectorStoreConfig {
             havingValue = "IN_MEMORY",
             matchIfMissing = true
     )
-    public VectorStore inMemoryVectorStore(EmbeddingModel embeddingModel) {
+    public VectorStore inMemoryVectorStore(EmbeddingModel embeddingModel, BatchingStrategy batchingStrategy) {
         log.info(">> Init In-Memory VectorStore");
-        return SimpleVectorStore.builder(embeddingModel)
+        return SimpleVectorStore
+                .builder(embeddingModel)
+                .batchingStrategy(batchingStrategy)
                 .build();
     }
 
     @Bean
     public BatchingStrategy customBatchingStrategy() {
-        return new TokenCountBatchingStrategy(EncodingType.CL100K_BASE, 6144, 0.1);
+        return new TokenCountBatchingStrategy(EncodingType.CL100K_BASE, 8192, 0.1);
     }
 }

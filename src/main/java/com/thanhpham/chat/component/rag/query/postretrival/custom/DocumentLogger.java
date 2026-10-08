@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.query.post.custom;
+package com.thanhpham.chat.component.rag.query.postretrival.custom;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;

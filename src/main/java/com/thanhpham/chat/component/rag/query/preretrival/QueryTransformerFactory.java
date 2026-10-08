@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.query.pre;
+package com.thanhpham.chat.component.rag.query.preretrival;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

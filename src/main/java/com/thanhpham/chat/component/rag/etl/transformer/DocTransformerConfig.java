@@ -32,7 +32,7 @@ public class DocTransformerConfig {
     }
 
     @Bean
-    public SummaryMetadataEnricher summaryMetadata(ChatModel chatModel) {
+    public SummaryMetadataEnricher initSummaryMetadataEnricher(ChatModel chatModel) {
         return new SummaryMetadataEnricher(chatModel,
                 List.of(SummaryMetadataEnricher.SummaryType.PREVIOUS,
                         SummaryMetadataEnricher.SummaryType.CURRENT,

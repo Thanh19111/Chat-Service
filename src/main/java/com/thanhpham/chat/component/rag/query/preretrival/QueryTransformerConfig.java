@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.query.pre;
+package com.thanhpham.chat.component.rag.query.preretrival;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;

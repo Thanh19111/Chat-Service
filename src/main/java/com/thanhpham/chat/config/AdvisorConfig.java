@@ -1,11 +1,12 @@
 package com.thanhpham.chat.config;
 
 import com.thanhpham.chat.advisor.TokenUsageAdvisor;
-import com.thanhpham.chat.component.rag.query.post.PostProcesserFactory;
-import com.thanhpham.chat.component.rag.query.pre.QueryTransformerFactory;
+import com.thanhpham.chat.component.rag.query.postretrival.PostProcesserFactory;
+import com.thanhpham.chat.component.rag.query.preretrival.QueryTransformerFactory;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
@@ -48,9 +49,6 @@ public class AdvisorConfig {
                                                                          PostProcesserFactory processerFactory,
                                                                          MultiQueryExpander expander) {
         return RetrievalAugmentationAdvisor.builder()
-                .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
                 .queryTransformers(transformerFactory.getAll())
                 .queryExpander(expander)
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
@@ -58,7 +56,17 @@ public class AdvisorConfig {
                         .topK(7)
                         .vectorStore(vectorStore)
                         .build())
+                .queryAugmenter(ContextualQueryAugmenter.builder()
+                        .allowEmptyContext(true)
+                        .build())
                 .documentPostProcessors(processerFactory.getAll())
+                .build();
+    }
+
+    @Bean
+    public VectorStoreChatMemoryAdvisor initVectorStoreChatMemoryAdvisor(VectorStore chatMemory) {
+        return VectorStoreChatMemoryAdvisor.builder(chatMemory)
+                .defaultTopK(50)
                 .build();
     }
 }

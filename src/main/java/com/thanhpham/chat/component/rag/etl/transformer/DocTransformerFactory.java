@@ -1,5 +1,6 @@
 package com.thanhpham.chat.component.rag.etl.transformer;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentTransformer;
@@ -10,16 +11,12 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DocTransformerFactory {
-    private final Map<String, DocumentTransformer> transformerMap;
-
-    public DocTransformerFactory(Map<String, DocumentTransformer> transformerMap) {
-        log.info("Total document transformers: {} have been registered", transformerMap.size());
-        this.transformerMap = transformerMap;
-    }
+    private final Map<String, DocumentTransformer> transformers;
 
     public List<Document> applyAll(List<Document> documents) {
-        return transformerMap.values().stream()
+        return transformers.values().stream()
                 .reduce(documents,
                         (currentDocuments, transformer) -> transformer.apply(documents),
                         (q1, q2) -> q2);

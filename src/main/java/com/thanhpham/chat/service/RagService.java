@@ -2,7 +2,7 @@ package com.thanhpham.chat.service;
 
 import com.thanhpham.chat.component.AsyncExecutor;
 import com.thanhpham.chat.component.rag.etl.reader.Artifact;
-import com.thanhpham.chat.component.rag.etl.reader.file.TikaDocumentHandler;
+import com.thanhpham.chat.component.rag.etl.reader.filesupport.TikaDocumentHandler;
 import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentHandler;
 import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentLogger;
 import com.thanhpham.chat.component.rag.etl.reader.handler.TextNormalizer;
@@ -12,8 +12,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
@@ -28,7 +30,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -40,9 +41,8 @@ public class RagService implements IRagService {
     private final AsyncExecutor executor;
     private final DocTransformerFactory transformerFactory;
     private final RetrievalAugmentationAdvisor augmentationAdvisor;
+    private final VectorStoreChatMemoryAdvisor chatMemoryAdvisor;
 
-    private static final int DEFAULT_TOPK = 7;
-    private static final double DEFAULT_THRESHOLD = 0.6;
     private static final int BATCH_SIZE = 15;
     private static final Duration BATCH_DELAY = Duration.ofMinutes(2);
 
@@ -51,7 +51,7 @@ public class RagService implements IRagService {
         return chatClient
                 .prompt()
                 .user(message)
-                .advisors(augmentationAdvisor)
+                .advisors(augmentationAdvisor, chatMemoryAdvisor)
                 .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()
                 .content();
@@ -143,23 +143,10 @@ public class RagService implements IRagService {
     }
 
     private SearchRequest buildSearchRequest(String query, @Nullable Integer top, @Nullable Double threshold, @Nullable String filter) {
-        int safeTop = Optional.ofNullable(top)
-                .filter(t -> t > 0)
-                .orElse(DEFAULT_TOPK);
-
-        double safeThreshold = Optional.ofNullable(threshold)
-                .filter(t -> t >= 0.0 && t <= 1.0)
-                .orElse(DEFAULT_THRESHOLD);
-
-        SearchRequest.Builder builder = SearchRequest.builder()
-                .query(query)
-                .topK(safeTop)
-                .similarityThreshold(safeThreshold);
-
-        if (StringUtils.isNotBlank(filter)) {
-            builder.filterExpression(filter);
-        }
-
+        SearchRequest.Builder builder = SearchRequest.builder().query(query);
+        if (ObjectUtils.isNotEmpty(top)) builder.topK(top);
+        if (ObjectUtils.isNotEmpty(threshold)) builder.similarityThreshold(threshold);
+        if (StringUtils.isNotBlank(filter)) builder.filterExpression(filter);
         return builder.build();
     }
 }

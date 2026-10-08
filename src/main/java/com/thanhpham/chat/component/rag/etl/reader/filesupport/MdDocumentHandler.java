@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.etl.reader.file;
+package com.thanhpham.chat.component.rag.etl.reader.filesupport;
 
 import com.thanhpham.chat.component.rag.etl.reader.Artifact;
 import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentHandler;
