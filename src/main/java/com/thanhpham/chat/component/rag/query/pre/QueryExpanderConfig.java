@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.query.transformer;
+package com.thanhpham.chat.component.rag.query.pre;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.rag.preretrieval.query.expansion.MultiQueryExpander;

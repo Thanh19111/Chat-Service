@@ -1,6 +1,6 @@
-package com.thanhpham.chat.component.rag.etl.reader;
+package com.thanhpham.chat.component.rag.etl.reader.file;
 
-import com.thanhpham.chat.component.rag.Artifact;
+import com.thanhpham.chat.component.rag.etl.reader.Artifact;
 import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentHandler;
 import com.thanhpham.chat.util.CommonUtils;
 import org.apache.commons.lang3.ObjectUtils;

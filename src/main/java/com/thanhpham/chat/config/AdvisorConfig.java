@@ -1,7 +1,8 @@
 package com.thanhpham.chat.config;
 
 import com.thanhpham.chat.advisor.TokenUsageAdvisor;
-import com.thanhpham.chat.component.rag.query.transformer.QueryTransformerFactory;
+import com.thanhpham.chat.component.rag.query.post.PostProcesserFactory;
+import com.thanhpham.chat.component.rag.query.pre.QueryTransformerFactory;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -42,18 +43,22 @@ public class AdvisorConfig {
     }
 
     @Bean
-    public RetrievalAugmentationAdvisor initRetrievalAugmentationAdvisor(VectorStore vectorStore, QueryTransformerFactory factory, MultiQueryExpander expander) {
+    public RetrievalAugmentationAdvisor initRetrievalAugmentationAdvisor(VectorStore vectorStore,
+                                                                         QueryTransformerFactory transformerFactory,
+                                                                         PostProcesserFactory processerFactory,
+                                                                         MultiQueryExpander expander) {
         return RetrievalAugmentationAdvisor.builder()
-                .queryTransformers(factory.getAll())
-                .queryExpander(expander)
-                .documentRetriever(VectorStoreDocumentRetriever.builder()
-                        .similarityThreshold(0.7)
-                        .topK(7)
-                        .vectorStore(vectorStore)
-                        .build())
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
+                .queryTransformers(transformerFactory.getAll())
+                .queryExpander(expander)
+                .documentRetriever(VectorStoreDocumentRetriever.builder()
+                        .similarityThreshold(0.65)
+                        .topK(7)
+                        .vectorStore(vectorStore)
+                        .build())
+                .documentPostProcessors(processerFactory.getAll())
                 .build();
     }
 }

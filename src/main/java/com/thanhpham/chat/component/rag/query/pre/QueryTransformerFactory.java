@@ -1,5 +1,6 @@
-package com.thanhpham.chat.component.rag.query.transformer;
+package com.thanhpham.chat.component.rag.query.pre;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.preretrieval.query.transformation.QueryTransformer;
@@ -10,22 +11,18 @@ import java.util.Map;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class QueryTransformerFactory {
-    private final Map<String, QueryTransformer> transformerMap;
-
-    public QueryTransformerFactory(Map<String, QueryTransformer> transformerMap) {
-        log.info("Total query transformers: {} have been registered", transformerMap.size());
-        this.transformerMap = transformerMap;
-    }
+    private final Map<String, QueryTransformer> transformers;
 
     public Query applyAll(Query query) {
-        return transformerMap.values().stream()
+        return transformers.values().stream()
                 .reduce(query,
                         (currentQuery, transformer) -> transformer.transform(currentQuery),
                         (q1, q2) -> q2);
     }
 
     public List<QueryTransformer> getAll() {
-        return transformerMap.values().stream().toList();
+        return List.copyOf(transformers.values());
     }
 }

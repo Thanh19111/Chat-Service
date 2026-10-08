@@ -1,8 +1,10 @@
 package com.thanhpham.chat.service;
 
 import com.thanhpham.chat.component.AsyncExecutor;
-import com.thanhpham.chat.component.rag.Artifact;
-import com.thanhpham.chat.component.rag.etl.reader.TikaDocumentHandler;
+import com.thanhpham.chat.component.rag.etl.reader.Artifact;
+import com.thanhpham.chat.component.rag.etl.reader.file.TikaDocumentHandler;
+import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentHandler;
+import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentLogger;
 import com.thanhpham.chat.component.rag.etl.reader.handler.TextNormalizer;
 import com.thanhpham.chat.component.rag.etl.transformer.DocTransformerFactory;
 import com.thanhpham.chat.dto.request.RagDocument;
@@ -45,23 +47,6 @@ public class RagService implements IRagService {
     private static final Duration BATCH_DELAY = Duration.ofMinutes(2);
 
     @Override
-    public List<Document> saveDocuments(List<RagDocument> documents) {
-        List<Document> rawDocuments = documents.stream()
-                .map(document -> new Document(document.getContent(), document.getMetadata() == null ? new HashMap<>() : document.getMetadata())).toList();
-        return saveRawDocuments(rawDocuments);
-    }
-
-    @Override
-    public List<Document> saveDocument(MultipartFile file) throws IOException {
-        Artifact processor = TikaDocumentHandler.builder()
-                .file(file)
-                .handler(new TextNormalizer())
-                .build();
-        List<Document> transformed = transformerFactory.applyAll(processor.read());
-        return saveRawDocuments(transformed);
-    }
-
-    @Override
     public String retrieveAndGenerate(String conversationId, @NonNull String message) {
         return chatClient
                 .prompt()
@@ -70,12 +55,6 @@ public class RagService implements IRagService {
                 .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()
                 .content();
-    }
-
-    @Override
-    public List<Document> semanticSearch(String query, @Nullable Integer top, @Nullable Double threshold, @Nullable String filter) {
-        SearchRequest request = buildSearchRequest(query, top, threshold, filter);
-        return vectorStore.similaritySearch(request);
     }
 
     @Override
@@ -93,9 +72,33 @@ public class RagService implements IRagService {
         return semanticSearch(query, top, threshold, null);
     }
 
+    @Override
+    public List<Document> semanticSearch(String query, @Nullable Integer top, @Nullable Double threshold, @Nullable String filter) {
+        SearchRequest request = buildSearchRequest(query, top, threshold, filter);
+        return vectorStore.similaritySearch(request);
+    }
+
+    @Override
+    public List<Document> saveDocuments(List<RagDocument> documents) {
+        List<Document> rawDocuments = documents.stream()
+                .map(document -> new Document(document.getContent(), document.getMetadata() == null ? new HashMap<>() : document.getMetadata())).toList();
+        return saveRawDocuments(rawDocuments);
+    }
+
+    @Override
+    public List<Document> saveDocument(MultipartFile file) throws IOException {
+        DocumentHandler handler = new TextNormalizer()
+                .setNext(new DocumentLogger());
+        Artifact processor = TikaDocumentHandler.builder()
+                .file(file)
+                .handler(handler)
+                .build();
+        List<Document> transformed = transformerFactory.applyAll(processor.read());
+        return saveRawDocuments(transformed);
+    }
+
     private List<Document> saveRawDocuments(@Nullable List<Document> chunks) {
         if (CollectionUtils.isEmpty(chunks)) return List.of();
-
         executor.runAsync(() -> {
             log.info("START processing chunks...");
             if (CollectionUtils.isEmpty(chunks)) {

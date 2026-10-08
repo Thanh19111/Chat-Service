@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Slf4j
 @Configuration
 public class ChatMemoryConfig {
-    private static final int MAX_MESSAGES = 20;
+    private static final int MAX_MESSAGES = 50;
 
     @Bean
     @ConditionalOnProperty(

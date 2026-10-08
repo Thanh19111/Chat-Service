@@ -1,6 +1,6 @@
-package com.thanhpham.chat.component.rag.etl.reader;
+package com.thanhpham.chat.component.rag.etl.reader.file;
 
-import com.thanhpham.chat.component.rag.Artifact;
+import com.thanhpham.chat.component.rag.etl.reader.Artifact;
 import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentHandler;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;

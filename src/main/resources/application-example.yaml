@@ -1,0 +1,82 @@
+server:
+  port: 8080
+app:
+  timezone: Asia/Ho_Chi_Minh
+  database:
+    enabled: true
+  chat-memory:
+    type: POSTGRES
+  vector-store:
+    type: POSTGRES
+
+client:
+  telegram:
+    token: your_bot_token
+
+spring:
+  application:
+    name: Chat
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 20MB
+      max-request-size: 50MB
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+      - org.springframework.ai.model.chat.memory.repository.jdbc.autoconfigure.JdbcChatMemoryRepositoryAutoConfiguration
+
+  ai:
+    google:
+      genai:
+        api-key: your_api_key
+        chat:
+          model: gemini-3.1-flash-lite-preview
+        embedding:
+          api-key: your_api_key
+          text:
+            model: gemini-embedding-2
+            dimensions: 1536
+
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+    mcp:
+      client:
+        enabled: false
+        request-timeout: 10s
+        streamable-http:
+          connections:
+            thanhpham:
+              url: http://localhost:9000
+              endpoint: /mcp
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics, prometheus
+  tracing:
+    export:
+      enabled: false
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/traces
+          timeout: 30s
