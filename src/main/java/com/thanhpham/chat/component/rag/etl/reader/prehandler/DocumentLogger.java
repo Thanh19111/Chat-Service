@@ -1,4 +1,4 @@
-package com.thanhpham.chat.component.rag.etl.reader.handler;
+package com.thanhpham.chat.component.rag.etl.reader.prehandler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;

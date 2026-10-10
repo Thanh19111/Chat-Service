@@ -1,7 +1,7 @@
 package com.thanhpham.chat.component.rag.etl.reader.filesupport;
 
 import com.thanhpham.chat.component.rag.etl.reader.Artifact;
-import com.thanhpham.chat.component.rag.etl.reader.handler.DocumentHandler;
+import com.thanhpham.chat.component.rag.etl.reader.prehandler.DocumentHandler;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.document.DocumentReader;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
