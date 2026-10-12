@@ -41,7 +41,6 @@ public class RagService implements IRagService {
     private final AsyncExecutor executor;
     private final DocTransformerFactory transformerFactory;
     private final RetrievalAugmentationAdvisor augmentationAdvisor;
-    private final VectorStoreChatMemoryAdvisor chatMemoryAdvisor;
 
     private static final int BATCH_SIZE = 15;
     private static final Duration BATCH_DELAY = Duration.ofMinutes(2);
@@ -51,7 +50,7 @@ public class RagService implements IRagService {
         return chatClient
                 .prompt()
                 .user(message)
-                .advisors(augmentationAdvisor, chatMemoryAdvisor)
+                .advisors(augmentationAdvisor)
                 .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, conversationId))
                 .call()
                 .content();

@@ -49,7 +49,7 @@ public class AdvisorConfig {
                                                                          PostProcesserFactory processerFactory,
                                                                          MultiQueryExpander expander) {
         return RetrievalAugmentationAdvisor.builder()
-                .queryTransformers(transformerFactory.getAll())
+                .queryTransformers(transformerFactory.findAll())
                 .queryExpander(expander)
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .similarityThreshold(0.65)
@@ -59,7 +59,7 @@ public class AdvisorConfig {
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
-                .documentPostProcessors(processerFactory.getAll())
+                .documentPostProcessors(processerFactory.findAll())
                 .build();
     }
 

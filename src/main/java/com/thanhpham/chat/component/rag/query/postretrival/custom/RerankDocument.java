@@ -23,9 +23,7 @@ public class RerankDocument implements DocumentPostProcessor {
     private static final int MAX_LIMIT = 5;
 
     public RerankDocument(ChatModel chatModel) {
-        chatClient = ChatClient
-                .builder(chatModel)
-                .build();
+        chatClient = ChatClient.builder(chatModel).build();
     }
 
     @Override

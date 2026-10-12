@@ -22,7 +22,7 @@ public class QueryTransformerFactory {
                         (q1, q2) -> q2);
     }
 
-    public List<QueryTransformer> getAll() {
+    public List<QueryTransformer> findAll() {
         return List.copyOf(transformers.values());
     }
 }

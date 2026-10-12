@@ -1,6 +1,7 @@
 package com.thanhpham.chat.component.rag.query.preretrival;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.preretrieval.query.transformation.TranslationQueryTransformer;
@@ -15,25 +16,25 @@ public class QueryTransformerConfig {
 
     @Bean
     @Order(2)
-    public CompressionQueryTransformer initCompressionQueryTransformer(ChatClient.Builder builder) {
+    public CompressionQueryTransformer initCompressionQueryTransformer(ChatModel chatModel) {
         return CompressionQueryTransformer.builder()
-                .chatClientBuilder(builder)
+                .chatClientBuilder(ChatClient.builder(chatModel))
                 .build();
     }
 
     @Bean
     @Order(1)
-    public RewriteQueryTransformer initRewriteQueryTransformer(ChatClient.Builder builder) {
+    public RewriteQueryTransformer initRewriteQueryTransformer(ChatModel chatModel) {
         return RewriteQueryTransformer.builder()
-                .chatClientBuilder(builder)
+                .chatClientBuilder(ChatClient.builder(chatModel))
                 .build();
     }
 
     @Bean
     @Order(3)
-    public TranslationQueryTransformer initTranslationQueryTransformer(ChatClient.Builder builder) {
+    public TranslationQueryTransformer initTranslationQueryTransformer(ChatModel chatModel) {
         return TranslationQueryTransformer.builder()
-                .chatClientBuilder(builder)
+                .chatClientBuilder(ChatClient.builder(chatModel))
                 .targetLanguage(TARGET_LANGUAGE)
                 .build();
     }

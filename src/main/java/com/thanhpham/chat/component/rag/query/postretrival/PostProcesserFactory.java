@@ -14,7 +14,7 @@ import java.util.Map;
 public class PostProcesserFactory {
     private final Map<String, DocumentPostProcessor> processors;
 
-    public List<DocumentPostProcessor> getAll() {
+    public List<DocumentPostProcessor> findAll() {
         return List.copyOf(processors.values());
     }
 }
