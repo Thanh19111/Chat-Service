@@ -17,6 +17,7 @@ public class DocumentLogger implements DocumentPostProcessor {
 
     @Override
     public @NonNull List<Document> process(@NonNull Query query, @NonNull List<Document> list) {
+        log.info("Total {} documents", list.size());
         list.forEach(document -> log.info("{}", document));
         return list;
     }

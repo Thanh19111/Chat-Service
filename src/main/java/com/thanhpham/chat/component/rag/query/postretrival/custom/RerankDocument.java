@@ -44,14 +44,13 @@ public class RerankDocument implements DocumentPostProcessor {
         String prompt = String.format("""
                 Bạn là một hệ thống Reranker tài liệu. Hãy đánh giá độ liên quan của các tài liệu sau với câu hỏi của người dùng.
                 
-                ⚠️ QUY TẮC BẮT BUỘC:
+                QUY TẮC BẮT BUỘC:
                 1. Nếu có các tài liệu chứa nội dung trùng lặp hoặc tương tự nhau, BẮT BUỘC CHỈ CHỌN 1 ID TỐT NHẤT và KHÔNG ĐƯỢC CHỌN CÁC ID CÒN LẠI.
                 2. Trả về tối đa %s ID theo thứ tự từ liên quan nhất đến ít liên quan nhất, CÓ THỂ ÍT HƠN HOẶC KHÔNG CHỌN NẾU NỘI DUNG TRÙNG HOẶC KHÔNG LIÊN QUAN.
                 3. Định dạng chính xác mỗi dòng một ID (Ví dụ:
                 0
                 3
-                1
-                )
+                1)
                 4. Chỉ trả về danh sách ID, tuyệt đối không giải thích hay thêm bất kỳ ký tự nào khác.
                 
                 Câu hỏi: "%s"

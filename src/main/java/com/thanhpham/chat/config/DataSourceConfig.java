@@ -23,7 +23,7 @@ public class DataSourceConfig {
             @Value("${spring.datasource.username}") String username,
             @Value("${spring.datasource.password}") String password,
             @Value("${spring.datasource.driver-class-name}") String driverClassName) {
-        log.info(">> Init DataSource manually for URL: {}", url);
+        log.info("Init DataSource manually for URL: {}", url);
 
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl(url);
@@ -41,7 +41,7 @@ public class DataSourceConfig {
             havingValue = "true"
     )
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-        log.info(">> Init JdbcTemplate manually");
+        log.info("Init JdbcTemplate manually");
         return new JdbcTemplate(dataSource);
     }
 }

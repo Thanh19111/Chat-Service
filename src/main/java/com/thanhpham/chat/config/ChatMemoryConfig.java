@@ -23,7 +23,7 @@ public class ChatMemoryConfig {
             matchIfMissing = true
     )
     public ChatMemory inMemoryChatMemory() {
-        log.info(">> Init In-Memory Store successfully!");
+        log.info("Init In-Memory Chat memory");
         ChatMemoryRepository inMemoryStore = new InMemoryChatMemoryRepository();
         return MessageWindowChatMemory.builder()
                 .chatMemoryRepository(inMemoryStore)
@@ -38,7 +38,7 @@ public class ChatMemoryConfig {
             matchIfMissing = false
     )
     public ChatMemory jdbcChatMemory(JdbcTemplate jdbcTemplate) {
-        log.info(">> Init JDBC Memory Store successfully!");
+        log.info("Init JDBC Chat memory!");
         JdbcChatMemoryRepository jdbcStore = JdbcChatMemoryRepository.builder()
                 .jdbcTemplate(jdbcTemplate)
                 .build();
