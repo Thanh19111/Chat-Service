@@ -24,7 +24,7 @@ public class VectorStoreConfig {
             matchIfMissing = false
     )
     public VectorStore pgVectorStore(JdbcTemplate jdbcTemplate, BatchingStrategy batchingStrategy, EmbeddingModel embeddingModel) {
-        log.info(">> Init PG VectorStore");
+        log.info("Init PG VectorStore");
         return PgVectorStore.builder(jdbcTemplate, embeddingModel)
                 .batchingStrategy(batchingStrategy)
                 .vectorTableValidationsEnabled(true)
@@ -43,7 +43,7 @@ public class VectorStoreConfig {
             matchIfMissing = true
     )
     public VectorStore inMemoryVectorStore(EmbeddingModel embeddingModel, BatchingStrategy batchingStrategy) {
-        log.info(">> Init In-Memory VectorStore");
+        log.info("Init In-Memory VectorStore");
         return SimpleVectorStore
                 .builder(embeddingModel)
                 .batchingStrategy(batchingStrategy)

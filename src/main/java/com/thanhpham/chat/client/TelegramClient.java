@@ -12,6 +12,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.*;
@@ -25,13 +27,15 @@ public class TelegramClient {
     private final IChatService iChatService;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(5);
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-    private final String BOT_NAME = "@" + "thanhpv_bot";
+
+    @Value("#{'@' + '${client.telegram.name}'}")
+    private String BOT_NAME;
 
     @PostConstruct
     void setup() {
         telegramBot.setUpdatesListener(updates -> {
             updates.stream()
-                    .filter(update -> update.message() != null && update.message().text() != null)
+                    .filter(update -> ObjectUtils.isNotEmpty(update.message()) && ObjectUtils.isNotEmpty(update.message().text()))
                     .forEach(this::handleMessage);
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
@@ -39,8 +43,11 @@ public class TelegramClient {
 
     @PreDestroy
     public void cleanup() {
+        log.info("Shutdown Telegram service");
         telegramBot.removeGetUpdatesListener();
+        log.info("Cleanup scheduler queue");
         scheduler.shutdown();
+        log.info("Cleanup virtual thread pool");
         executor.shutdown();
     }
 
@@ -51,13 +58,14 @@ public class TelegramClient {
         String userText = update.message().text().replace(BOT_NAME, "").trim();
 
         AtomicBoolean isProcessing = new AtomicBoolean(true);
-        ScheduledFuture<?> typingTask = startTypingEffect(chatId, isProcessing);
-        CompletableFuture<String> task = generateText(String.valueOf(userId), userText)
+        ScheduledFuture<?> typingTask = scheduler.scheduleAtFixedRate(() -> {
+            if (isProcessing.get()) telegramBot.execute(new SendChatAction(chatId, ChatAction.typing));
+        }, 0, 4000, TimeUnit.MILLISECONDS);
+
+        CompletableFuture.supplyAsync(() -> iChatService.chat(userId.toString(), userText), executor)
                 .whenCompleteAsync((result, throwable) -> {
                     isProcessing.set(false);
-                    if (!typingTask.isCancelled()) {
-                        typingTask.cancel(false);
-                    }
+                    if (!typingTask.isCancelled()) typingTask.cancel(false);
 
                     SendResponse response = telegramBot.execute(new SendMessage(chatId, result));
                     if (response.isOk()) {
@@ -68,25 +76,5 @@ public class TelegramClient {
                         log.info("RESPONSE LLM: {}", result);
                     }
                 }, executor);
-    }
-
-    private ScheduledFuture<?> startTypingEffect(long chatId, AtomicBoolean isProcessing) {
-        telegramBot.execute(new SendChatAction(chatId, ChatAction.typing));
-        return scheduler.scheduleAtFixedRate(() -> {
-            if (isProcessing.get()) {
-                telegramBot.execute(new SendChatAction(chatId, ChatAction.typing));
-            }
-        }, 2000, 4000, TimeUnit.MILLISECONDS);
-    }
-
-    public CompletableFuture<String> generateText(String userId, String message) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return iChatService.chat(userId, message);
-            } catch (Exception e) {
-                log.error(e.getMessage());
-                return "Something went wrong, please try again :(";
-            }
-        }, executor);
     }
 }

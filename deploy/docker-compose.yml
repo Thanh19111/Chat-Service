@@ -1,0 +1,113 @@
+name: gemini-ai
+
+services:
+  core:
+    container_name: searxng-core
+    image: docker.io/searxng/searxng:${SEARXNG_VERSION:-latest}
+    restart: always
+    ports:
+      - ${SEARXNG_HOST:+${SEARXNG_HOST}:}${SEARXNG_PORT:-8080}:${SEARXNG_PORT:-8080}
+    env_file: ./.env
+    volumes:
+      - ./core-config/:/etc/searxng/:Z
+      - core-data:/var/cache/searxng/
+
+  valkey:
+    container_name: searxng-valkey
+    image: docker.io/valkey/valkey:9-alpine
+    command: valkey-server --save 30 1 --loglevel warning
+    restart: always
+    volumes:
+      - valkey-data:/data/
+
+  chat-service:
+    image: chat-service:1.0.6
+    container_name: chat-service
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      APP_CHAT_MEMORY_TYPE: POSTGRES
+      APP_VECTOR_STORE_TYPE: POSTGRES
+      APP_DATABASE_ENABLED: true
+      CLIENT_TELEGRAM_TOKEN: TELEGRAM_BOT_TOKEN
+      SPRING_AI_GOOGLE_GENAI_API_KEY: GOOGLE_API_TOKEN
+      SPRING_AI_GOOGLE_EMBEDDING_API_KEY: GOOGLE_API_TOKEN
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pg-vectorstore:5432/postgres
+      SPRING_AI_MCP_CLIENT_ENABLED: true
+      SPRING_AI_MCP_CLIENT_STREAMABLE_HTTP_CONNECTIONS_THANHPHAM_URL: http://mcp-server:9000
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+      MANAGEMENT_OTLP_METRICS_EXPORT_ENABLED: false
+      MANAGEMENT_TRACING_EXPORT_ENABLED: true
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_TIMEOUT: 30s
+    depends_on:
+      - pg-vectorstore
+      - mcp-server
+      - jaeger
+      - prometheus
+      - grafana
+
+  mcp-server:
+    image: embeddium/mcp-server:1.0.3
+    container_name: mcp-server
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      API_CLIENT_SEARXNG_URL: core:8000
+    depends_on:
+      - core
+  
+  pg-vectorstore:
+    image: pgvector/pgvector:0.8.2-pg18-trixie
+    container_name: pg-vectorstore
+    restart: unless-stopped
+    volumes:
+      - pgvector-data:/var/lib/postgresql/18/docker
+      - /var/lib/postgresql
+      - ./pg-vectorstore/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres 
+      PGDATA: /var/lib/postgresql/18/docker
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus-config/prometheus-config.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 16686:16686
+      - 4317:4317
+      - 4318:4318
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+volumes:
+  core-data:
+  valkey-data:
+  pgvector-data:
+  grafana-storage:
+
+
+# docker run --hostname=72a5eaf98875 --user=nobody --env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --volume=D:/Users/Desktop/env/prometheus-config.yml:/etc/prometheus/prometheus.yml --volume=/prometheus --network=bridge --workdir=/prometheus -p 9090:9090 --restart=no --label='io.prometheus.image.variant=busybox' --label='maintainer=The Prometheus Authors <prometheus-developers@googlegroups.com>' --label='org.opencontainers.image.authors=The Prometheus Authors' --label='org.opencontainers.image.description=The Prometheus monitoring system and time series database' --label='org.opencontainers.image.documentation=https://prometheus.io/docs' --label='org.opencontainers.image.licenses=Apache License 2.0' --label='org.opencontainers.image.source=https://github.com/prometheus/prometheus' --label='org.opencontainers.image.title=Prometheus' --label='org.opencontainers.image.url=https://github.com/prometheus/prometheus' --label='org.opencontainers.image.vendor=Prometheus' --runtime=runc -d prom/prometheus
+# docker run --hostname=023c27e3c3fc --user=10001 --env=COLLECTOR_OTLP_ENABLED=true --env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --env=SAMPLING_STRATEGIES_FILE=/etc/jaeger/sampling_strategies.json --volume=/tmp --network=bridge --workdir=/ -p 14250:14250 -p 14268:14268 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 9411:9411 --restart=no --runtime=runc -d jaegertracing/all-in-one:latest
+# docker run --hostname=eb751c266bc1 --user=472 --env=PATH=/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --env=GF_PATHS_CONFIG=/etc/grafana/grafana.ini --env=GF_PATHS_DATA=/var/lib/grafana --env=GF_PATHS_HOME=/usr/share/grafana --env=GF_PATHS_LOGS=/var/log/grafana --env=GF_PATHS_PLUGINS=/var/lib/grafana/plugins --env=GF_PATHS_PROVISIONING=/etc/grafana/provisioning --volume=grafana-storage:/var/lib/grafana --network=bridge --workdir=/usr/share/grafana -p 3000:3000 --restart=no --label='maintainer=Grafana Labs <hello@grafana.com>' --label='org.opencontainers.image.source=https://github.com/grafana/grafana' --runtime=runc -d grafana/grafana
