@@ -9,7 +9,11 @@ import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryReposito
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+
+import javax.sql.DataSource;
 
 @Slf4j
 @Configuration
@@ -37,11 +41,15 @@ public class ChatMemoryConfig {
             havingValue = "POSTGRES",
             matchIfMissing = false
     )
-    public ChatMemory jdbcChatMemory(JdbcTemplate jdbcTemplate) {
+    public ChatMemory jdbcChatMemory(JdbcTemplate jdbcTemplate, DataSource dataSource) {
         log.info("Init JDBC Chat memory!");
         JdbcChatMemoryRepository jdbcStore = JdbcChatMemoryRepository.builder()
                 .jdbcTemplate(jdbcTemplate)
                 .build();
+
+        // Thay cho cấu hình khởi tạo schema trong file application.properties
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator(new ClassPathResource("org/springframework/ai/chat/memory/repository/jdbc/schema-postgresql.sql"));
+        populator.execute(dataSource);
 
         return MessageWindowChatMemory.builder()
                 .chatMemoryRepository(jdbcStore)

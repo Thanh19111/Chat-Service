@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class RetryableAspect {
+
     @Around("@annotation(retryable)")
     public Object handleRetry(ProceedingJoinPoint joinPoint, Retryable retryable) throws Throwable {
         int maxAttempts = retryable.limit();
