@@ -12,6 +12,7 @@ app:
 client:
   telegram:
     token: your_bot_token
+    name: your_bot_name
 
 spring:
   application:
@@ -44,12 +45,6 @@ spring:
           text:
             model: gemini-embedding-2
             dimensions: 1536
-
-    chat:
-      memory:
-        repository:
-          jdbc:
-            initialize-schema: always
     mcp:
       client:
         enabled: false
